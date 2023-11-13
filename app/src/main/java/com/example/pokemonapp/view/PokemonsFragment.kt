@@ -6,12 +6,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.pokemonapp.R
+import com.example.pokemonapp.adapter.PokemonAdapter
 import com.example.pokemonapp.databinding.FragmentPokemonsBinding
+import com.example.pokemonapp.viewmodel.PokemonsViewModel
 
 
 class PokemonsFragment : Fragment() {
 
+    private lateinit var viewModel: PokemonsViewModel
+    private val pokemonAdapter = PokemonAdapter(arrayListOf())
     private lateinit var binding : FragmentPokemonsBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,17 +29,58 @@ class PokemonsFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_pokemons,container,false)
-        // Inflate the layout for this fragment
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        viewModel = ViewModelProvider(this)[PokemonsViewModel :: class.java]
+        viewModel.refreshData()
+        binding.pokemonList.layoutManager = LinearLayoutManager(context)
+        binding.pokemonList.adapter = pokemonAdapter
+
      /*   binding.fragmentButton.setOnClickListener{
             val  action = PokemonsFragmentDirections.actionPokemonsFragmentToDetailFragment()
             Navigation.findNavController(it).navigate(action)
         }*/
+
+        observeLiveData()
+    }
+
+
+    private fun observeLiveData(){
+        viewModel.pokemons.observe(viewLifecycleOwner, Observer { pokemons ->
+            pokemons?.let {
+                binding.pokemonList.visibility = View.VISIBLE
+                pokemonAdapter.updateCountryList(pokemons)
+            }
+        })
+
+        viewModel.pokemonError.observe(viewLifecycleOwner, Observer { error->
+            error?.let {
+                if(it){
+                    binding.countryError.visibility = View.VISIBLE
+                }else{
+                    binding.countryError.visibility = View.GONE
+                }
+            }
+        })
+
+        viewModel.pokemonLoading.observe(viewLifecycleOwner, Observer { loading->
+            loading?.let {
+                if(it){
+                    binding.pokemonsLoading.visibility = View.VISIBLE
+                    binding.pokemonList.visibility = View.GONE
+                    binding.countryError.visibility = View.GONE
+                }else{
+                    binding.pokemonsLoading.visibility = View.GONE
+                }
+            }
+
+        })
     }
 
 }
