@@ -1,5 +1,6 @@
 package com.example.pokemonapp.view
 
+import android.os.Binder
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -42,10 +43,13 @@ class PokemonsFragment : Fragment() {
         binding.pokemonList.layoutManager = LinearLayoutManager(context)
         binding.pokemonList.adapter = pokemonAdapter
 
-     /*   binding.fragmentButton.setOnClickListener{
-            val  action = PokemonsFragmentDirections.actionPokemonsFragmentToDetailFragment()
-            Navigation.findNavController(it).navigate(action)
-        }*/
+        binding.swipeRefreshLayout.setOnRefreshListener {
+            binding.pokemonList.visibility = View.GONE
+            binding.pokemonsLoading.visibility = View.VISIBLE
+            binding.pokemonError.visibility = View.GONE
+            viewModel.refreshData()
+            binding.swipeRefreshLayout.isRefreshing = false
+        }
 
         observeLiveData()
     }
@@ -62,9 +66,9 @@ class PokemonsFragment : Fragment() {
         viewModel.pokemonError.observe(viewLifecycleOwner, Observer { error->
             error?.let {
                 if(it){
-                    binding.countryError.visibility = View.VISIBLE
+                    binding.pokemonError.visibility = View.VISIBLE
                 }else{
-                    binding.countryError.visibility = View.GONE
+                    binding.pokemonError.visibility = View.GONE
                 }
             }
         })
@@ -74,7 +78,7 @@ class PokemonsFragment : Fragment() {
                 if(it){
                     binding.pokemonsLoading.visibility = View.VISIBLE
                     binding.pokemonList.visibility = View.GONE
-                    binding.countryError.visibility = View.GONE
+                    binding.pokemonError.visibility = View.GONE
                 }else{
                     binding.pokemonsLoading.visibility = View.GONE
                 }
