@@ -9,6 +9,7 @@ import io.reactivex.observers.DisposableSingleObserver
 import io.reactivex.schedulers.Schedulers
 
 
+
 class PokemonsViewModel : ViewModel() {
 
     private val pokemonApiService = PokemonAPIService()

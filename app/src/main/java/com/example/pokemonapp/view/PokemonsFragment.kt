@@ -1,11 +1,11 @@
 package com.example.pokemonapp.view
 
-import android.os.Binder
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -29,8 +29,8 @@ class PokemonsFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-
+    ): View {
+        (requireActivity() as AppCompatActivity).supportActionBar?.title = "Pokemon"
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_pokemons,container,false)
         return binding.root
     }
