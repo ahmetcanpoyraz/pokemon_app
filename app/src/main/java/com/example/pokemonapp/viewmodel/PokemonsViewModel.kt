@@ -3,21 +3,17 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.pokemonapp.model.PokemonModel
 import com.example.pokemonapp.service.PokemonAPIService
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.observers.DisposableSingleObserver
-import io.reactivex.schedulers.Schedulers
-
+import kotlinx.coroutines.*
 
 
 class PokemonsViewModel : ViewModel() {
 
     private val pokemonApiService = PokemonAPIService()
-    private val disposable = CompositeDisposable()
-
     val pokemons = MutableLiveData<List<PokemonModel>>()
     val pokemonError = MutableLiveData<Boolean>()
     val pokemonLoading = MutableLiveData<Boolean>()
+    private var job: Job? = null
+    val exceptionHandler = CoroutineExceptionHandler{coroutineContext, throwable -> println(throwable.message)  }
 
     fun refreshData(){
        getDataFromAPI()
@@ -25,26 +21,29 @@ class PokemonsViewModel : ViewModel() {
 
     private fun getDataFromAPI(){
         pokemonLoading.value = true
-        disposable.add(
-            pokemonApiService.getData()
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(object : DisposableSingleObserver<List<PokemonModel>>(){
-                    override fun onSuccess(value: List<PokemonModel>) {
-                        pokemons.value = value
+
+        job = CoroutineScope(Dispatchers.IO).launch {
+            val response = pokemonApiService.getData()
+
+            withContext(Dispatchers.Main + exceptionHandler){
+                if(response.isSuccessful){
+                    response.body()?.let {
+                        pokemons.value = it
                         pokemonError.value = false
                         pokemonLoading.value = false
                     }
+                }else{
+                    pokemonError.value = true
+                    pokemonLoading.value = false
+                }
+            }
+        }
+    }
 
-                    override fun onError(e: Throwable) {
-                        pokemonError.value = true
-                        pokemonLoading.value = false
-                        e.printStackTrace()
-                    }
 
-                })
-
-        )
+    override fun onCleared() {
+        super.onCleared()
+        job?.cancel()
     }
 
 

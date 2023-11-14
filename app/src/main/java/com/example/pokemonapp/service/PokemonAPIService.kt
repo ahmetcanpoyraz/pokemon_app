@@ -1,9 +1,8 @@
 package com.example.pokemonapp.service
 
 import com.example.pokemonapp.model.PokemonModel
-import io.reactivex.Single
+import retrofit2.Response
 import retrofit2.Retrofit
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 
 class PokemonAPIService {
@@ -11,11 +10,11 @@ class PokemonAPIService {
     private val api = Retrofit.Builder()
         .baseUrl(BASE_URL)
         .addConverterFactory(GsonConverterFactory.create())
-        .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
         .build()
         .create(PokemonAPI::class.java)
 
-    fun getData() : Single<List<PokemonModel>> {
+
+    suspend fun getData() : Response<List<PokemonModel>> {
         return api.getPokemons()
     }
 }
